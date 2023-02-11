@@ -1,101 +1,74 @@
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.plaf.ActionMapUIResource;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 
 
 public class TicTacToe implements ActionListener{
-    JFrame frame;
-    JPanel gamePanel;
-    JPanel buttonPanel;
-    JPanel userXPanel;
-    JPanel userOPanel;
-    JPanel resetPanel;
-    JPanel boardPanel;
-    JPanel[] rowPanel;
-    JButton button1;
-    JButton button2;
-    JButton button3;
-    JButton button4;
-    JButton button5;
-    JButton button6;
-    JButton button7;
-    JButton button8;
-    JButton button9;
-    String[] users={"Player","CPU"};
-    JComboBox userX;
-    JComboBox userO;
-    JLabel userXLabel;
-    JLabel userOLabel;
-    JButton reset;
-    JLabel label;
-    JLabel winnerLabel;
-    String user="X";
-    static ArrayList<Integer> xPos = new ArrayList<>();
-    static ArrayList<Integer> oPos = new ArrayList<>();
-    int gameState=0;
+    private final JFrame frame;
+    private final JPanel gamePanel;
+    private final JPanel buttonPanel;
+    private final JPanel userXPanel;
+    private final JPanel userOPanel;
+    private final JPanel difficultyPanel;
+    private final JPanel resetPanel;
+    private final JPanel boardPanel;
+    private final JButton[] buttons;
+    private final String[] users={"Player","CPU"};
+    private final JComboBox<String> userX;
+    private final JComboBox<String> userO;
+    private final String[] difficulties={"Easy", "Medium", "Hard"};
+    private final JComboBox<String> difficulty;
+    private final JLabel userXLabel;
+    private final JLabel userOLabel;
+    private final JLabel difficultyLabel;
+    private final JButton reset;
+    private final JLabel label;
+    private final JLabel winnerLabel;
+    private String user="X";
+    private final static ArrayList<Integer> xPos = new ArrayList<>();
+    private final static ArrayList<Integer> oPos = new ArrayList<>();
+    private enum DifficultyLevel{
+        EASY("easy"), MEDIUM("medium"), HARD("hard");
+        DifficultyLevel(String v){}
+    }
+    private static DifficultyLevel difficultyLevel = DifficultyLevel.EASY;
+    private int gameState=0;
 
     public TicTacToe(){
 
-        button1=new JButton(" ");
-        button2=new JButton(" ");
-        button3=new JButton(" ");
-        button4=new JButton(" ");
-        button5=new JButton(" ");
-        button6=new JButton(" ");
-        button7=new JButton(" ");
-        button8=new JButton(" ");
-        button9=new JButton(" ");
         reset=new JButton("Reset");
         userXLabel=new JLabel("User X:");
-        userX = new JComboBox(users);
+        userX = new JComboBox<>(users);
         userOLabel=new JLabel("User O:");
-        userO = new JComboBox(users);
-        Font f = new Font("Helvetica Neue", Font.PLAIN, 50);
-        button1.setFont(f);
-        button2.setFont(f);
-        button3.setFont(f);
-        button4.setFont(f);
-        button5.setFont(f);
-        button6.setFont(f);
-        button7.setFont(f);
-        button8.setFont(f);
-        button9.setFont(f);
-        button1.addActionListener(this);
-        button2.addActionListener(this);
-        button3.addActionListener(this);
-        button4.addActionListener(this);
-        button5.addActionListener(this);
-        button6.addActionListener(this);
-        button7.addActionListener(this);
-        button8.addActionListener(this);
-        button9.addActionListener(this);
+        userO = new JComboBox<>(users);
+        difficultyLabel = new JLabel("Difficulty:");
+        difficulty = new JComboBox<>(difficulties);
         reset.addActionListener(this);
         userX.addActionListener(this);
         userO.addActionListener(this);
+        difficulty.addActionListener(this);
         reset.setAlignmentX(Component.CENTER_ALIGNMENT);
         userXLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         userX.setAlignmentX(Component.CENTER_ALIGNMENT);
         userOLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         userO.setAlignmentX(Component.CENTER_ALIGNMENT);
+        difficultyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        difficulty.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(3, 3));
 
-        boardPanel.add(button1);
-        boardPanel.add(button2);
-        boardPanel.add(button3);
-        boardPanel.add(button4);
-        boardPanel.add(button5);
-        boardPanel.add(button6);
-        boardPanel.add(button7);
-        boardPanel.add(button8);
-        boardPanel.add(button9);
+
+        buttons = new JButton[9];
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i] = new JButton(" ");
+            buttons[i].setFont(new Font("Helvetica Neue", Font.PLAIN, 50));
+            buttons[i].addActionListener(this);
+            boardPanel.add(buttons[i]);
+        }
 
         Font f2 = new Font("Helvetica Neue", Font.PLAIN, 25);
         label=new JLabel("Player's turn: "+user);
@@ -108,7 +81,7 @@ public class TicTacToe implements ActionListener{
         winnerLabel.setFont(f2);
 
         resetPanel = new JPanel();
-        resetPanel.setMaximumSize(new Dimension(100, 75));
+        resetPanel.setMaximumSize(new Dimension(100, 40));
         resetPanel.add(reset);
         reset.setAlignmentX(Component.CENTER_ALIGNMENT);
         reset.setAlignmentY(Component.CENTER_ALIGNMENT);
@@ -116,21 +89,28 @@ public class TicTacToe implements ActionListener{
 
         userXPanel = new JPanel();
         userXPanel.setLayout(new BoxLayout(userXPanel, BoxLayout.Y_AXIS));
-        userXPanel.setMaximumSize(new Dimension(100, 75));
+        userXPanel.setMaximumSize(new Dimension(100, 50));
         userXPanel.add(userXLabel);
         userXPanel.add(userX);
 
         userOPanel = new JPanel();
         userOPanel.setLayout(new BoxLayout(userOPanel, BoxLayout.Y_AXIS));
-        userOPanel.setMaximumSize(new Dimension(100, 75));
+        userOPanel.setMaximumSize(new Dimension(100, 50));
         userOPanel.add(userOLabel);
         userOPanel.add(userO);
+        
+        difficultyPanel = new JPanel();
+        difficultyPanel.setLayout(new BoxLayout(difficultyPanel, BoxLayout.Y_AXIS));
+        difficultyPanel.setMaximumSize(new Dimension(100, 50));
+        difficultyPanel.add(difficultyLabel);
+        difficultyPanel.add(difficulty);
 
         buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         buttonPanel.add(resetPanel);
         buttonPanel.add(userXPanel);
         buttonPanel.add(userOPanel);
+        buttonPanel.add(difficultyPanel);
 
         gamePanel = new JPanel();
         gamePanel.setLayout(new BoxLayout(gamePanel, BoxLayout.Y_AXIS));
@@ -184,79 +164,172 @@ public class TicTacToe implements ActionListener{
 
     void CPUmoves(){
         if(xPos.size()+oPos.size()<=9){
-            Random r = new Random();
-            int a;
-            do {
-                a = r.nextInt(9) + 1;
-            } while ((xPos.contains(a) || oPos.contains(a)) && xPos.size() + oPos.size() < 9);
-            switch (a) {
-                case 1: {
-                    button1.setEnabled(false);
-                    button1.setText(user);
-                    assignButtonToUser(1);
-                    checkWinner();
-                    break;
+            if(difficultyLevel.equals(DifficultyLevel.EASY)){
+                assignRandom();
+            }
+            else if(difficultyLevel.equals(DifficultyLevel.MEDIUM) || difficultyLevel.equals(DifficultyLevel.HARD)){
+                ArrayList<Integer> cpuPos;
+                ArrayList<Integer> opponentPos;
+                if(user.equals("X")) {
+                    cpuPos = xPos;
+                    opponentPos = oPos;
                 }
-                case 2: {
-                    button2.setEnabled(false);
-                    button2.setText(user);
-                    assignButtonToUser(2);
-                    checkWinner();
-                    break;
+                else {
+                    cpuPos = oPos;
+                    opponentPos = xPos;
                 }
-                case 3: {
-                    button3.setEnabled(false);
-                    button3.setText(user);
-                    assignButtonToUser(3);
-                    checkWinner();
-                    break;
+
+                // Try to Win: If you have two in a row, play the third to get three in a row.
+                if(cpuPos.size()>=2){
+                    if(cpuPos.stream().filter(i -> i>=1 && i<=3).count()==2){
+                        for (int i = 0; i < 3; i++) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(cpuPos.stream().filter(i -> i>=4 && i<=6).count()==2){
+                        for (int i = 3; i < 6; i++) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(cpuPos.stream().filter(i -> i>=7 && i<=9).count()==2){
+                        for (int i = 6; i < 9; i++) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(cpuPos.stream().filter(i -> i==1 || i==4 || i==7).count()==2){
+                        for (int i = 0; i < 9; i+=3) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(cpuPos.stream().filter(i -> i==2 || i==5 || i==8).count()==2){
+                        for (int i = 1; i < 9; i+=3) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(cpuPos.stream().filter(i -> i==3 || i==6 || i==9).count()==2){
+                        for (int i = 2; i < 9; i+=3) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(cpuPos.stream().filter(i -> i==1 || i==5 || i==9).count()==2){
+                        for (int i = 0; i < 9; i+=4) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(cpuPos.stream().filter(i -> i==3 || i==5 || i==7).count()==2){
+                        for (int i = 2; i < 9; i+=2) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
                 }
-                case 4: {
-                    button4.setEnabled(false);
-                    button4.setText(user);
-                    assignButtonToUser(4);
-                    checkWinner();
-                    break;
+
+                // Block: If the opponent has two in a row, play the third to block them.
+                if(opponentPos.size()>=2){
+                    if(opponentPos.stream().filter(i -> i>=1 && i<=3).count()==2){
+                        for (int i = 0; i < 3; i++) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(opponentPos.stream().filter(i -> i>=4 && i<=6).count()==2){
+                        for (int i = 3; i < 6; i++) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(opponentPos.stream().filter(i -> i>=7 && i<=9).count()==2){
+                        for (int i = 6; i < 9; i++) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(opponentPos.stream().filter(i -> i==1 || i==4 || i==7).count()==2){
+                        for (int i = 0; i < 9; i+=3) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(opponentPos.stream().filter(i -> i==2 || i==5 || i==8).count()==2){
+                        for (int i = 1; i < 9; i+=3) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(opponentPos.stream().filter(i -> i==3 || i==6 || i==9).count()==2){
+                        for (int i = 2; i < 9; i+=3) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(opponentPos.stream().filter(i -> i==1 || i==5 || i==9).count()==2){
+                        for (int i = 0; i < 9; i+=4) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
+                    if(opponentPos.stream().filter(i -> i==3 || i==5 || i==7).count()==2){
+                        for (int i = 2; i < 9; i+=2) {
+                            if(buttons[i].isEnabled()){
+                                assignButtonToUser(i);
+                                return;
+                            }
+                        }
+                    }
                 }
-                case 5: {
-                    button5.setEnabled(false);
-                    button5.setText(user);
-                    assignButtonToUser(5);
-                    checkWinner();
-                    break;
+
+                if(difficultyLevel.equals(DifficultyLevel.MEDIUM)) assignRandom();
+                else{
+                    assignRandom();
                 }
-                case 6: {
-                    button6.setEnabled(false);
-                    button6.setText(user);
-                    assignButtonToUser(6);
-                    checkWinner();
-                    break;
-                }
-                case 7: {
-                    button7.setEnabled(false);
-                    button7.setText(user);
-                    assignButtonToUser(7);
-                    checkWinner();
-                    break;
-                }
-                case 8: {
-                    button8.setEnabled(false);
-                    button8.setText(user);
-                    assignButtonToUser(8);
-                    checkWinner();
-                    break;
-                }
-                case 9: {
-                    button9.setEnabled(false);
-                    button9.setText(user);
-                    assignButtonToUser(9);
-                    checkWinner();
-                    break;
-                }
-                default:
-                    break;
             }
         }
+    }
+
+    void assignRandom(){
+        Random r = new Random();
+        int a;
+        do {
+            a = r.nextInt(9) + 1;
+        } while ((xPos.contains(a) || oPos.contains(a)) && xPos.size() + oPos.size() < 9);
+        assignButtonToUser(a-1);
     }
 
     void checkWinner(){
@@ -306,37 +379,19 @@ public class TicTacToe implements ActionListener{
 
 
     void disableAllButtons(){
-        button1.setEnabled(false);
-        button2.setEnabled(false);
-        button3.setEnabled(false);
-        button4.setEnabled(false);
-        button5.setEnabled(false);
-        button6.setEnabled(false);
-        button7.setEnabled(false);
-        button8.setEnabled(false);
-        button9.setEnabled(false);
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setEnabled(false);
+        }
     }
     void enableAllButtons(){
-        button1.setEnabled(true);
-        button2.setEnabled(true);
-        button3.setEnabled(true);
-        button4.setEnabled(true);
-        button5.setEnabled(true);
-        button6.setEnabled(true);
-        button7.setEnabled(true);
-        button8.setEnabled(true);
-        button9.setEnabled(true);
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setEnabled(true);
+        }
     }
     void clearAllButtons(){
-        button1.setText(" ");
-        button2.setText(" ");
-        button3.setText(" ");
-        button4.setText(" ");
-        button5.setText(" ");
-        button6.setText(" ");
-        button7.setText(" ");
-        button8.setText(" ");
-        button9.setText(" ");
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setText(" ");
+        }
     }
 
     void Reset(){
@@ -349,13 +404,16 @@ public class TicTacToe implements ActionListener{
         setUser("X");
     }
 
-    void assignButtonToUser(int b){
+    void assignButtonToUser(int i){
         if (user.equals("X")){
-            xPos.add(b);
+            xPos.add(i+1);
         }
         else if (user.equals("O")){
-            oPos.add(b);
+            oPos.add(i+1);
         }
+        buttons[i].setEnabled(false);
+        buttons[i].setText(user);
+        checkWinner();
     }
 
     @Override
@@ -376,54 +434,21 @@ public class TicTacToe implements ActionListener{
                 CPUmoves();
             }
         }
+        else if(e.getSource()==difficulty){
+            if(difficulty.getSelectedItem().toString().equalsIgnoreCase(DifficultyLevel.EASY.toString()))
+                difficultyLevel = DifficultyLevel.EASY;
+            if(difficulty.getSelectedItem().toString().equalsIgnoreCase(DifficultyLevel.MEDIUM.toString()))
+                difficultyLevel = DifficultyLevel.MEDIUM;
+            if(difficulty.getSelectedItem().toString().equalsIgnoreCase(DifficultyLevel.HARD.toString()))
+                difficultyLevel = DifficultyLevel.HARD;
+        }
         else {
-            if (e.getSource()==button1){
-                button1.setEnabled(false);
-                button1.setText(user);
-                assignButtonToUser(1);
+            for (int i=0; i<9; i++) {
+                if(e.getSource()==buttons[i]){
+                    assignButtonToUser(i);
+                    break;
+                }
             }
-            else if (e.getSource()==button2){
-                button2.setEnabled(false);
-                button2.setText(user);
-                assignButtonToUser(2);
-            }
-            else if (e.getSource()==button3){
-                button3.setEnabled(false);
-                button3.setText(user);
-                assignButtonToUser(3);
-            }
-            else if (e.getSource()==button4){
-                button4.setEnabled(false);
-                button4.setText(user);
-                assignButtonToUser(4);
-            }
-            else if (e.getSource()==button5){
-                button5.setEnabled(false);
-                button5.setText(user);
-                assignButtonToUser(5);
-            }
-            else if (e.getSource()==button6){
-                button6.setEnabled(false);
-                button6.setText(user);
-                assignButtonToUser(6);
-            }
-            else if (e.getSource()==button7){
-                button7.setEnabled(false);
-                button7.setText(user);
-                assignButtonToUser(7);
-            }
-            else if (e.getSource()==button8){
-                button8.setEnabled(false);
-                button8.setText(user);
-                assignButtonToUser(8);
-            }
-            else if (e.getSource()==button9){
-                button9.setEnabled(false);
-                button9.setText(user);
-                assignButtonToUser(9);
-            }
-            checkWinner();
-
         }
     }
 
