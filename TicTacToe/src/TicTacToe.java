@@ -67,6 +67,7 @@ public class TicTacToe implements ActionListener{
             buttons[i] = new JButton(" ");
             buttons[i].setFont(new Font("Helvetica Neue", Font.PLAIN, 50));
             buttons[i].addActionListener(this);
+            buttons[i].setFocusable(false);
             boardPanel.add(buttons[i]);
         }
 
@@ -120,7 +121,7 @@ public class TicTacToe implements ActionListener{
         gamePanel.add(boardPanel);
 
         JPanel emptyPanel = new JPanel();
-        emptyPanel.setPreferredSize(new Dimension(100, 100));
+        emptyPanel.setPreferredSize(new Dimension(25, 0));
 
 
         frame = new JFrame();
@@ -132,7 +133,8 @@ public class TicTacToe implements ActionListener{
         frame.add(gamePanel, BorderLayout.CENTER);
         frame.add(buttonPanel, BorderLayout.WEST);
         frame.add(winnerLabel, BorderLayout.SOUTH);
-        frame.setMinimumSize(new Dimension(450,350));
+        frame.setMinimumSize(new Dimension(390,340));
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
     public void changeUser(){
